@@ -18,6 +18,9 @@ tsconfig.tsbuildinfo
 *.log
 npm-debug.log*
 
+# Claude Code local config
+.claude/
+
 # OS
 .DS_Store
 
