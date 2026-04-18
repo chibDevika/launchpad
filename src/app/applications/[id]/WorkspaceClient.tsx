@@ -152,7 +152,9 @@ export default function WorkspaceClient({
   const [analysingStep, setAnalysingStep] = useState<
     null | "extracting" | "scoring" | "suggesting"
   >(null);
-  const [atsSuggestions, setAtsSuggestions] = useState<ATSSuggestion[]>([]);
+  const [atsSuggestions, setAtsSuggestions] = useState<ATSSuggestion[]>(
+    initialApp.ats_suggestions ?? [],
+  );
   const [doneSuggestions, setDoneSuggestions] = useState<Set<number>>(
     new Set(),
   );

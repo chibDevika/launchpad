@@ -105,6 +105,12 @@ Extended profile rules (important):
 
   try {
     const suggestions = JSON.parse(text);
+    // Persist so the workspace can hydrate them on reload
+    await supabase
+      .from("applications")
+      .update({ ats_suggestions: suggestions })
+      .eq("id", id)
+      .eq("user_id", user.id);
     return NextResponse.json({ suggestions });
   } catch {
     console.error("[ats-suggestions] Failed to parse response:", text);

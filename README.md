@@ -72,6 +72,7 @@ supabase/migrations/004_resume_format.sql
 supabase/migrations/005_v2_tracker.sql
 supabase/migrations/006_channels.sql
 supabase/migrations/007_add_stages.sql
+supabase/migrations/008_ats_suggestions.sql
 ```
 
 Then add the extended profile column:

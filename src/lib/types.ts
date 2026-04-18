@@ -138,6 +138,7 @@ export interface Application {
   jd_extracted: JDExtracted | null;
   match_score: number | null;
   match_breakdown: MatchBreakdown | null;
+  ats_suggestions: ATSSuggestion[] | null;
   status: ApplicationStatus;
   applied_via_referral: boolean;
   reached_out_to_hm: boolean;
@@ -175,7 +176,9 @@ export interface Database {
       };
       applications: {
         Row: Application;
-        Insert: Omit<Application, "id" | "created_at" | "updated_at">;
+        Insert: Omit<Application, "id" | "created_at" | "updated_at"> & {
+          ats_suggestions?: ATSSuggestion[] | null;
+        };
         Update: Partial<Omit<Application, "id" | "user_id" | "created_at">>;
       };
       application_stages: {
