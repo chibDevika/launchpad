@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
     if (!error) {
       const {
-        data: { user, session },
+        data: { user },
       } = await supabase.auth.getUser();
 
       // getUser doesn't return provider_token — use getSession for that
