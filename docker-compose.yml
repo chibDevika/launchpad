@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "3001:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules        # anonymous volume prevents host from clobbering container node_modules
+      - /app/.next               # same for .next build cache
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true   # needed for file watching inside Docker on macOS
+    restart: unless-stopped

@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Environment variables — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+tsconfig.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Docker
+docker-compose.override.yml

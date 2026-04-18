@@ -1,0 +1,35 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-text-primary font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  .card {
+    @apply bg-surface rounded-card border border-slate-100 shadow-sm;
+  }
+
+  .section-label {
+    @apply text-[11px] font-semibold tracking-[0.05em] text-[#9CA3AF];
+  }
+}
+
+@layer components {
+  .input {
+    @apply w-full border border-slate-200 rounded-input px-3 py-2.5 text-sm text-text-primary placeholder:text-slate-400 focus:outline-none focus:ring-[3px] focus:ring-[#EEF2FF] focus:border-[#6366F1] transition-colors bg-surface;
+  }
+
+  .btn-primary {
+    @apply bg-[#6366F1] text-white font-medium py-2.5 px-5 rounded-[10px] hover:bg-[#4F46E5] active:bg-[#4338CA] disabled:opacity-[0.38] disabled:cursor-not-allowed transition-colors text-sm;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-[#374151] font-medium py-2.5 px-5 rounded-input hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm border border-[#D1D5DB];
+  }
+}
