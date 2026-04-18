@@ -46,11 +46,6 @@ function writeCollapsed(cols: Set<string>) {
   localStorage.setItem("lp_collapsed_cols", JSON.stringify(Array.from(cols)));
 }
 
-function readScrollHinted(): boolean {
-  if (typeof window === "undefined") return true;
-  return localStorage.getItem("lp_scroll_hinted") === "1";
-}
-
 // ── Quick-add modal ─────────────────────────────────────────────────────────
 
 interface QuickAddForm {
@@ -275,27 +270,28 @@ export default function TrackerClient({
   // Collapsed columns
   const [collapsed, setCollapsed] = useState<Set<string>>(readCollapsed);
 
-  // Scroll affordance
+  // Scroll affordance — true whenever more content sits to the right
   const boardRef = useRef<HTMLDivElement>(null);
-  const [showScrollHint, setShowScrollHint] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   // Filters
   const [filterTags, setFilterTags] = useState<string[]>([]);
   const [filterChannel, setFilterChannel] = useState<string>("");
 
   useEffect(() => {
-    if (!boardRef.current) return;
     const el = boardRef.current;
-    const overflows = el.scrollWidth > el.clientWidth;
-    if (overflows && !readScrollHinted()) {
-      setShowScrollHint(true);
+    if (!el) return;
+    function check() {
+      if (!el) return;
+      setCanScrollRight(el.scrollWidth > el.clientWidth + el.scrollLeft + 4);
     }
-    function onScroll() {
-      setShowScrollHint(false);
-      localStorage.setItem("lp_scroll_hinted", "1");
-    }
-    el.addEventListener("scroll", onScroll, { once: true });
-    return () => el.removeEventListener("scroll", onScroll);
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
   }, [apps]);
 
   const sensors = useSensors(
@@ -365,7 +361,7 @@ export default function TrackerClient({
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-surface border-b border-slate-100 px-6 py-4 sticky top-0 z-10">
+      <header className="bg-surface border-b border-slate-100 px-6 py-4 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link
             href="/dashboard"
@@ -482,14 +478,12 @@ export default function TrackerClient({
           <EmptyState onStart={() => setShowQuickAdd(true)} />
         ) : (
           <div className="relative">
-            {/* Right-edge fade gradient scroll hint */}
-            {showScrollHint && (
-              <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none flex items-center justify-end pr-2">
-                <span className="text-slate-400 text-lg select-none animate-pulse">
-                  ›
-                </span>
-              </div>
-            )}
+            {/* Right-edge fade + arrow — visible whenever content overflows to the right */}
+            <div
+              className={`absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none flex items-center justify-end pr-3 transition-opacity duration-300 ${canScrollRight ? "opacity-100" : "opacity-0"}`}
+            >
+              <span className="text-slate-400 text-xl select-none">›</span>
+            </div>
             {/* Board */}
             <div
               ref={boardRef}
@@ -674,47 +668,40 @@ function DraggableCard({
     id: app.id,
   });
 
+  // Track whether pointer moved enough to be a drag so we don't also fire a click.
+  const didDrag = useRef(false);
+
   const style = transform
     ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
     : undefined;
+
+  // dnd-kit sets transform when a drag is active; once it clears, drag ended.
+  useEffect(() => {
+    if (transform) {
+      didDrag.current = true;
+    }
+  }, [transform]);
+
+  function handleClick() {
+    if (didDrag.current) {
+      didDrag.current = false;
+      return;
+    }
+    if (!disabled) onClick(app.id);
+  }
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`${isDragging ? "opacity-30" : ""}`}
+      {...listeners}
+      {...attributes}
+      onClick={handleClick}
+      className={`card p-3.5 text-left w-full hover:shadow-md transition-all space-y-2.5 cursor-grab active:cursor-grabbing select-none touch-none ${
+        isNavigating ? "opacity-70 ring-2 ring-primary/30" : ""
+      } ${isDragging ? "opacity-30" : ""}`}
     >
-      <div className="relative group">
-        {/* Drag handle */}
-        <div
-          {...listeners}
-          {...attributes}
-          className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10 rounded-l-card"
-          title="Drag to move"
-        >
-          <svg
-            className="w-3 h-3 text-slate-400"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <circle cx="9" cy="7" r="1.5" />
-            <circle cx="15" cy="7" r="1.5" />
-            <circle cx="9" cy="12" r="1.5" />
-            <circle cx="15" cy="12" r="1.5" />
-            <circle cx="9" cy="17" r="1.5" />
-            <circle cx="15" cy="17" r="1.5" />
-          </svg>
-        </div>
-        <button
-          onClick={() => onClick(app.id)}
-          disabled={disabled}
-          className={`card p-3.5 text-left w-full hover:shadow-md transition-all space-y-2.5 pl-5 ${
-            isNavigating ? "opacity-70 ring-2 ring-primary/30" : ""
-          }`}
-        >
-          <CardContent app={app} />
-        </button>
-      </div>
+      <CardContent app={app} />
     </div>
   );
 }
